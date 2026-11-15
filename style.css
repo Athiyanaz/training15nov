@@ -39,6 +39,7 @@ body {
   inset: -12%;
   display: block;
   filter: blur(18px);
+  transition: filter 0.4s;
   background:
     radial-gradient(circle at 72% 28%, #ffe08a 0 11%, transparent 12%),
     linear-gradient(#7fb3d5 0 52%, #6e9b5c 52% 72%, #2f5d3a 72%);
@@ -68,6 +69,18 @@ body {
   color: #d4af37;
   border: 2px solid #d4af37;
   cursor: pointer;
+}
+
+/* Running or paused: painting is less blurred */
+.page[data-state='running'] .art i,
+.page[data-state='paused'] .art i,
+.page[data-state='done'] .art i {
+  filter: blur(9px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* Phone-sized screens */
