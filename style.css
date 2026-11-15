@@ -29,6 +29,7 @@ body {
   outline-offset: 8px;
   margin: 10px;
   line-height: 0;
+  overflow: hidden; /* keeps the blur inside the frame */
 }
 
 /* Empty frame while a painting is loading */

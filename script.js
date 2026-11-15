@@ -136,12 +136,50 @@ function loadPainting() {
         artImg.src = url;
         artImg.hidden = false;
         artEl.classList.add('loaded');
+        applyBlur(); // already blurred before it is ever painted on screen
         if (state === 'done') showDetails();
       };
       img.src = url;
     })
     .catch((e) => console.error(e));
 }
+
+// ---- Blur: strongly blurred at the start, steadily clearer, sharp at 00:00 ----
+const MAX_BLUR_FRACTION = 0.1; // strongest blur = 10% of the painting's shorter side
+const EDGE_FACTOR = 3; // zoom just enough to keep the soft blur edges outside the frame
+
+function applyBlur() {
+  if (artImg.hidden) return;
+  const minSide = Math.min(artImg.clientWidth, artImg.clientHeight);
+  if (!minSide) return;
+  const look = (progress) => {
+    const blur = MAX_BLUR_FRACTION * minSide * progress;
+    const zoom = 1 + (EDGE_FACTOR * blur) / minSide;
+    return { filter: 'blur(' + blur.toFixed(2) + 'px)', transform: 'scale(' + zoom.toFixed(4) + ')' };
+  };
+  const set = (l) => {
+    artImg.style.filter = l.filter;
+    artImg.style.transform = l.transform;
+  };
+  artImg.style.transition = 'none';
+  if (state === 'done') {
+    set({ filter: 'none', transform: 'none' });
+  } else if (state === 'idle') {
+    set(look(1));
+  } else if (state === 'paused') {
+    set(look(remainingMs / TOTAL_MS));
+  } else {
+    // running: start from where the blur should be now, then slide to sharp
+    // in one steady move that ends exactly when the timer ends
+    const left = Math.max(0, endTime - Date.now());
+    set(look(left / TOTAL_MS));
+    void artImg.offsetWidth; // make the browser notice the start look
+    const s = (left / 1000).toFixed(3) + 's linear';
+    artImg.style.transition = 'filter ' + s + ', transform ' + s;
+    set({ filter: 'blur(0px)', transform: 'scale(1)' });
+  }
+}
+window.addEventListener('resize', applyBlur);
 
 // Details are only put on the page when the timer has finished
 function showDetails() {
@@ -179,6 +217,7 @@ function setState(next) {
   if (next === 'idle') mainBtn.textContent = 'Start';
   if (next === 'running') mainBtn.textContent = 'Pause';
   if (next === 'paused') mainBtn.textContent = 'Resume';
+  applyBlur();
 }
 
 // Works out the time left from the real clock, so it stays right
