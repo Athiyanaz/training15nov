@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bell sounds</title>
+  <style>
+    body { font-family: Georgia, serif; background: #2a1a4a; color: #f0dfa0; padding: 32px 16px; text-align: center; }
+    h1 { font-weight: normal; margin-bottom: 8px; }
+    p { margin-bottom: 24px; font-family: Arial, sans-serif; font-size: 14px; }
+    .list { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+    button { font-family: Arial, sans-serif; font-weight: bold; font-size: 16px; padding: 14px 24px; min-width: 240px;
+      background: transparent; color: #d4af37; border: 2px solid #d4af37; border-radius: 0; cursor: pointer; }
+    button:hover { background: rgba(212, 175, 55, 0.15); }
+  </style>
+</head>
+<body>
+  <h1>Bell sounds</h1>
+  <p>Press a button to hear each bell. Turn your volume up a little.</p>
+  <div class="list">
+    <button type="button" data-sound="softChime">1. Soft chime</button>
+    <button type="button" data-sound="templeBell">2. Temple bell</button>
+    <button type="button" data-sound="deskDing">3. Desk ding</button>
+  </div>
+
+  <script>
+    // One ringing tone: starts loud, fades away smoothly.
+    function tone(ctx, out, freq, start, peak, seconds) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(peak, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + seconds);
+      osc.connect(gain);
+      gain.connect(out);
+      osc.start(start);
+      osc.stop(start + seconds + 0.05);
+    }
+
+    const sounds = {
+      // 1. Soft chime: two gentle high tones, slow fade (about 2 to 3 seconds)
+      softChime(ctx, out, t) {
+        tone(ctx, out, 880, t, 0.35, 4.5);
+        tone(ctx, out, 1320, t, 0.18, 3.6);
+        tone(ctx, out, 1760, t, 0.08, 2.4);
+      },
+      // 2. Temple bell: deep bell made of several uneven tones, long warm ring
+      templeBell(ctx, out, t) {
+        tone(ctx, out, 220, t, 0.4, 5);
+        tone(ctx, out, 440, t, 0.25, 4.5);
+        tone(ctx, out, 607, t, 0.15, 3.5);
+        tone(ctx, out, 1188, t, 0.08, 2.4);
+        tone(ctx, out, 1965, t, 0.04, 1);
+      },
+      // 3. Desk ding: two quick bright taps
+      deskDing(ctx, out, t) {
+        [0, 0.28].forEach((d, i) => {
+          tone(ctx, out, 1568, t + d, 0.3, i ? 3 : 1.4);
+          tone(ctx, out, 3136, t + d, 0.1, 0.5);
+        });
+      }
+    };
+
+    let ctx = null;
+    document.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') ctx.resume();
+        sounds[btn.dataset.sound](ctx, ctx.destination, ctx.currentTime + 0.05);
+      });
+    });
+    window.sounds = sounds;
+  </script>
+</body>
+</html>

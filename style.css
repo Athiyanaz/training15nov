@@ -1,7 +1,118 @@
-body {
+* {
+  box-sizing: border-box;
   margin: 0;
+}
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: #2a1a4a;
+}
+
+.page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2vw;
+  padding: 3vw;
+  text-align: center;
+  color: #f0dfa0;
+  background: radial-gradient(ellipse at 50% 20%, #4b2f7d 0, #2a1a4a 65%);
+}
+
+/* Painting frame: hugs the painting, so nothing is stretched or cut off */
+.art {
+  border: 2px solid #d4af37;
+  outline: 2px solid #d4af37;
+  outline-offset: 8px;
+  margin: 10px;
+  line-height: 0;
+  overflow: hidden; /* keeps the blur inside the frame */
+}
+
+/* Empty frame while a painting is loading */
+.art:not(.loaded) {
+  width: min(50vw, 440px);
+  aspect-ratio: 4 / 3;
+}
+
+.art img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(50vw, 440px);
+  max-height: min(37.5vw, 330px, 40vh);
+}
+
+.time {
+  font-size: clamp(44px, 9vw, 80px);
+  color: #d4af37;
+  line-height: 1;
+  letter-spacing: 0.06em;
+}
+
+.btns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 0;
+  background: transparent;
+  color: #d4af37;
+  border: 2px solid #d4af37;
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Museum label with painting details */
+.info {
+  border: 1px solid #d4af37;
+  max-width: min(92vw, 520px);
+  overflow-wrap: anywhere;
+  padding: 8px 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #f0dfa0;
+}
+
+.info .t {
+  font-size: 18px;
+  font-style: italic;
+}
+
+.info a {
+  color: inherit;
+}
+
+/* Phone-sized screens */
+@media (max-width: 600px) {
+  .page {
+    gap: 24px;
+    padding: 24px;
+  }
+  .art:not(.loaded) {
+    width: 78vw;
+  }
+  .art img {
+    max-width: 78vw;
+    max-height: min(58vw, 330px, 40vh);
+  }
+  .time {
+    font-size: 56px;
+  }
+  .info {
+    padding: 8px 12px;
+  }
 }
