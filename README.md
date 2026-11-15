@@ -24,7 +24,7 @@ A Pomodoro timer (a countdown that helps you focus) that shows a real painting f
 
 Good to know:
 
-- The timer is set to **25 minutes**. You can't change the length from the page yet.
+- The timer is set to **30 seconds**. You can't change the length from the page yet.
 - The time stays correct even if you switch to another browser tab while it runs.
 - Refreshing the page also gives you a new painting.
 
