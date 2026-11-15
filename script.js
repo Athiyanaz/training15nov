@@ -1,4 +1,4 @@
-const TOTAL_MS = 25 * 60 * 1000;
+const TOTAL_MS = 30 * 1000;
 
 const page = document.getElementById('page');
 const timeEl = document.getElementById('time');
