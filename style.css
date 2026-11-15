@@ -73,14 +73,35 @@ body {
 
 /* Running or paused: painting is less blurred */
 .page[data-state='running'] .art i,
-.page[data-state='paused'] .art i,
-.page[data-state='done'] .art i {
+.page[data-state='paused'] .art i {
   filter: blur(9px);
 }
 
-.btn:disabled {
-  opacity: 0.4;
-  cursor: default;
+/* Finished: painting fully sharp */
+.page[data-state='done'] .art i {
+  filter: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Museum label with painting details */
+.info {
+  border: 1px solid #d4af37;
+  padding: 8px 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #f0dfa0;
+}
+
+.info .t {
+  font-size: 18px;
+  font-style: italic;
+}
+
+.info a {
+  color: inherit;
 }
 
 /* Phone-sized screens */
@@ -94,5 +115,8 @@ body {
   }
   .time {
     font-size: 56px;
+  }
+  .info {
+    padding: 8px 12px;
   }
 }

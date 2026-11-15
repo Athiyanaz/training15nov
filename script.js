@@ -4,6 +4,8 @@ const page = document.getElementById('page');
 const timeEl = document.getElementById('time');
 const mainBtn = document.getElementById('main-btn');
 const resetBtn = document.getElementById('reset-btn');
+const restartBtn = document.getElementById('restart-btn');
+const infoEl = document.getElementById('info');
 
 let state = 'idle'; // idle, running, paused, done
 let remainingMs = TOTAL_MS; // time left when not running
@@ -20,14 +22,14 @@ function show(ms) {
 function setState(next) {
   state = next;
   page.dataset.state = next;
-  mainBtn.disabled = false;
+  const done = next === 'done';
+  mainBtn.hidden = done;
+  resetBtn.hidden = done;
+  restartBtn.hidden = !done;
+  infoEl.hidden = !done;
   if (next === 'idle') mainBtn.textContent = 'Start';
   if (next === 'running') mainBtn.textContent = 'Pause';
   if (next === 'paused') mainBtn.textContent = 'Resume';
-  if (next === 'done') {
-    mainBtn.textContent = 'Pause';
-    mainBtn.disabled = true;
-  }
 }
 
 // Works out the time left from the real clock, so it stays right
@@ -66,13 +68,16 @@ mainBtn.addEventListener('click', () => {
   }
 });
 
-resetBtn.addEventListener('click', () => {
+function resetTimer() {
   clearInterval(intervalId);
   intervalId = null;
   remainingMs = TOTAL_MS;
   show(remainingMs);
   setState('idle');
-});
+}
+
+resetBtn.addEventListener('click', resetTimer);
+restartBtn.addEventListener('click', resetTimer);
 
 // Update straight away when coming back to the tab
 document.addEventListener('visibilitychange', tick);
