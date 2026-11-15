@@ -22,27 +22,27 @@ body {
   background: radial-gradient(ellipse at 50% 20%, #4b2f7d 0, #2a1a4a 65%);
 }
 
-/* Placeholder painting: blurred sky, sun and hills */
+/* Painting frame: hugs the painting, so nothing is stretched or cut off */
 .art {
-  width: min(50vw, 440px);
-  aspect-ratio: 4 / 3;
   border: 2px solid #d4af37;
   outline: 2px solid #d4af37;
   outline-offset: 8px;
   margin: 10px;
-  overflow: hidden;
-  position: relative;
+  line-height: 0;
 }
 
-.art i {
-  position: absolute;
-  inset: -12%;
+/* Empty frame while a painting is loading */
+.art:not(.loaded) {
+  width: min(50vw, 440px);
+  aspect-ratio: 4 / 3;
+}
+
+.art img {
   display: block;
-  filter: blur(18px);
-  transition: filter 0.4s;
-  background:
-    radial-gradient(circle at 72% 28%, #ffe08a 0 11%, transparent 12%),
-    linear-gradient(#7fb3d5 0 52%, #6e9b5c 52% 72%, #2f5d3a 72%);
+  width: auto;
+  height: auto;
+  max-width: min(50vw, 440px);
+  max-height: min(37.5vw, 330px, 40vh);
 }
 
 .time {
@@ -71,17 +71,6 @@ body {
   cursor: pointer;
 }
 
-/* Running or paused: painting is less blurred */
-.page[data-state='running'] .art i,
-.page[data-state='paused'] .art i {
-  filter: blur(9px);
-}
-
-/* Finished: painting fully sharp */
-.page[data-state='done'] .art i {
-  filter: none;
-}
-
 [hidden] {
   display: none !important;
 }
@@ -89,6 +78,8 @@ body {
 /* Museum label with painting details */
 .info {
   border: 1px solid #d4af37;
+  max-width: min(92vw, 520px);
+  overflow-wrap: anywhere;
   padding: 8px 18px;
   font-size: 14px;
   line-height: 1.4;
@@ -110,8 +101,12 @@ body {
     gap: 24px;
     padding: 24px;
   }
-  .art {
-    width: 78%;
+  .art:not(.loaded) {
+    width: 78vw;
+  }
+  .art img {
+    max-width: 78vw;
+    max-height: min(58vw, 330px, 40vh);
   }
   .time {
     font-size: 56px;

@@ -6,6 +6,12 @@ const mainBtn = document.getElementById('main-btn');
 const resetBtn = document.getElementById('reset-btn');
 const restartBtn = document.getElementById('restart-btn');
 const infoEl = document.getElementById('info');
+const artEl = document.getElementById('art');
+const artImg = document.getElementById('art-img');
+const infoTitle = document.getElementById('info-title');
+const infoArtist = document.getElementById('info-artist');
+const infoYear = document.getElementById('info-year');
+const infoLink = document.getElementById('info-link');
 
 let state = 'idle'; // idle, running, paused, done
 let remainingMs = TOTAL_MS; // time left when not running
@@ -77,6 +83,82 @@ function cancelBell() {
   setTimeout(() => master.disconnect(), 500);
 }
 
+// ---- Painting from the Met Museum's free public API ----
+const MET = 'https://collectionapi.metmuseum.org/public/collection';
+let painting = null; // details of the painting on screen: { title, artist, year, link }
+let loadId = 0; // lets a newer load replace an older one that is still running
+
+function pickRandom(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+let totalPaintings = null; // how many paintings with images the Met has
+
+async function getJson(url) {
+  return (await fetch(url)).json();
+}
+
+async function fetchPaintingRecord() {
+  const search = MET + '/v1.1/search?hasImages=true&medium=Paintings';
+  if (totalPaintings === null) totalPaintings = (await getJson(search + '&limit=1')).total;
+  // Try a random block of 500 paintings. If none of the ones I check
+  // is public domain with an image, quietly try another block.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const maxOffset = Math.max(0, Math.min(totalPaintings, 10000) - 500);
+    const offset = Math.floor(Math.random() * (maxOffset + 1));
+    const ids = (await getJson(search + '&limit=500&offset=' + offset)).objectIDs || [];
+    const picks = ids.slice().sort(() => Math.random() - 0.5).slice(0, 10);
+    const records = await Promise.all(picks.map((id) => getJson(MET + '/v1/objects/' + id).catch(() => null)));
+    const good = records.filter((r) => r && r.isPublicDomain && (r.primaryImageSmall || r.primaryImage));
+    if (good.length) return pickRandom(good);
+  }
+  throw new Error('No usable painting found');
+}
+
+function loadPainting() {
+  const myId = ++loadId;
+  painting = null;
+  artImg.hidden = true;
+  artImg.removeAttribute('src');
+  artEl.classList.remove('loaded');
+  fetchPaintingRecord()
+    .then((rec) => {
+      const url = rec.primaryImageSmall || rec.primaryImage;
+      const img = new Image();
+      img.onload = () => {
+        if (myId !== loadId) return; // an older load, ignore it
+        painting = {
+          title: rec.title,
+          artist: rec.artistDisplayName || 'Unknown',
+          year: rec.objectDate || 'Unknown',
+          link: rec.objectURL
+        };
+        artImg.src = url;
+        artImg.hidden = false;
+        artEl.classList.add('loaded');
+        if (state === 'done') showDetails();
+      };
+      img.src = url;
+    })
+    .catch((e) => console.error(e));
+}
+
+// Details are only put on the page when the timer has finished
+function showDetails() {
+  if (!painting) return;
+  infoTitle.textContent = painting.title;
+  infoArtist.textContent = painting.artist;
+  infoYear.textContent = painting.year;
+  infoLink.href = painting.link;
+}
+
+function clearDetails() {
+  infoTitle.textContent = '';
+  infoArtist.textContent = '';
+  infoYear.textContent = '';
+  infoLink.removeAttribute('href');
+}
+
 function show(ms) {
   const totalSeconds = Math.ceil(ms / 1000);
   const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -92,6 +174,8 @@ function setState(next) {
   resetBtn.hidden = done;
   restartBtn.hidden = !done;
   infoEl.hidden = !done;
+  if (done) showDetails();
+  else clearDetails();
   if (next === 'idle') mainBtn.textContent = 'Start';
   if (next === 'running') mainBtn.textContent = 'Pause';
   if (next === 'paused') mainBtn.textContent = 'Resume';
@@ -146,7 +230,12 @@ function resetTimer() {
 }
 
 resetBtn.addEventListener('click', resetTimer);
-restartBtn.addEventListener('click', resetTimer);
+restartBtn.addEventListener('click', () => {
+  resetTimer();
+  loadPainting(); // Restart session brings a new painting
+});
+
+loadPainting();
 
 // Update straight away when coming back to the tab
 document.addEventListener('visibilitychange', tick);
